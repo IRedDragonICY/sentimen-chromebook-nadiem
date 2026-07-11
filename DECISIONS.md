@@ -46,7 +46,7 @@ CPU, bukan model raksasa.
 
 ---
 
-## D3 — [sementara] Skema label tiga lapis: spam → sikap → emosi
+## D3 — Skema label tiga lapis: spam → sikap → emosi ✅ dikunci
 
 **Konteks.** Bukti dari data: sentimen di wacana ini terarah ke target. Komentar terpopuler
 ("Inilah fungsi dari menaikkan gaji para hakim 280%") negatif terhadap peradilan sekaligus
@@ -69,9 +69,19 @@ multi-label per target menggandakan ruang kesalahan dan menyulitkan evaluasi juj
 Kombinasi "sikap dominan (yang sudah memuat target)" + "emosi" menangkap sebagian besar
 struktur multi-arah wacana ini dengan biaya kompleksitas jauh lebih rendah.
 
-**Kunci skema** menunggu kalibrasi guideline terhadap contoh batu-uji (sarkasme, emoji-only,
-multi-target, code-mixing) — lihat tugas #2. Jika kelas tertentu terbukti tak bisa
-dibedakan secara konsisten, kelas digabung, bukan dipaksakan.
+**Dikunci setelah kalibrasi** terhadap sampel nyata per fase dan contoh batu-uji brief.
+Kelas final `sikap`: `pro_nadiem`, `kontra_nadiem`, `kritik_peradilan`, `kritik_pemerintah`,
+`netral_informasional`, `tak_jelas`. Kelas `emosi`: `marah`, `duka`, `sinis`, `harapan`,
+`netral`. Definisi lengkap + aturan preseden + batas-kasus: `skills/sentiment-labeling-id/SKILL.md`.
+
+Dua kaidah yang lahir dari kalibrasi dan menjadi tulang punggung skema:
+1. **Kodekan target yang terlihat, bukan posisi laten.** Kemarahan pada hakim itu ambigu
+   secara laten (bisa "vonis zalim" atau "vonis terlalu ringan") — menebaknya akan
+   menyuntikkan bias anotator. Maka `kritik_peradilan` berdiri sendiri tanpa
+   diterjemahkan menjadi pro/kontra Nadiem.
+2. **Emoji-only tidak pernah diberi stance** (selalu `tak_jelas` + emosi dari pemetaan
+   deterministik). Melabelnya dari konteks post akan mengajari model noise — teksnya
+   sendiri tidak memuat target.
 
 ---
 
@@ -109,3 +119,24 @@ komentar pada 30 Jun). Ada pula komentar hingga 11 Jul 2026.
 
 **Keputusan.** Analisis waktu dan stratifikasi sampling memakai empat fase ini sebagai
 dimensi peristiwa. UI menyajikan pergeseran sikap antar fase.
+
+---
+
+## D6 — Anotasi dikerjakan in-session tanpa API eksternal; label di-commit sebagai artefak
+
+**Konteks.** Tidak ada `ANTHROPIC_API_KEY` di lingkungan, sehingga pelabelan LLM
+terprogram (batch API) tidak tersedia. Anotatornya adalah Claude (Fable 5) langsung di
+sesi pengerjaan, mengikuti guideline tertulis di `skills/sentiment-labeling-id/SKILL.md`.
+
+**Keputusan.** (a) Gold set dilabeli langsung dengan pass ganda pada subsampel ≥20% dan
+kesepakatan test–retest dilaporkan. (b) Silver set = gabungan label langsung pada wakil
+klaster duplikat + aturan deterministik untuk kelas yang memang rule-able (emoji-only →
+emosi; pola spam ternormalisasi). (c) Seluruh file label di-commit ke repo, sehingga
+training tetap 100% reproducible dari artefak meski proses anotasinya (sebagaimana semua
+anotasi manusia) adalah penilaian yang tidak bisa di-"re-run" mekanis. (d) Template prompt
+untuk pelabelan API disertakan di SKILL agar pihak lain bisa memperluas label dengan jalur
+terprogram.
+
+**Risiko.** Anotator tunggal → bias sistematis mungkin tak terdeteksi oleh ukuran
+konsistensi diri. Mitigasi: guideline publik + label publik (bisa diaudit baris per baris),
+dan keterbatasan dinyatakan di model card.
