@@ -1,0 +1,40 @@
+{
+  "total_komentar": 38845,
+  "per_post": {
+    "DaM_18rj5OO": 16161,
+    "DaNC_lKSytw": 9965,
+    "DYR3czaxB9E": 5013,
+    "DaR6fCMxfe-": 3446,
+    "DUdN5deExTD": 1721,
+    "DYmUwyLEbx9": 794,
+    "DYSQkY4RX2K": 677,
+    "DX8xO2EDutM": 614,
+    "DTVFd_Rk-KJ": 289,
+    "DON94SnAD_0": 114,
+    "Dao9wWaDKzY": 51
+  },
+  "per_fase": {
+    "f4_jul2026": 29704,
+    "f3_mei2026": 7029,
+    "f2_awal2026": 1998,
+    "f1_sep2025": 114
+  },
+  "username_unik": 36665,
+  "hanya_emoji": 4436,
+  "teks_kosong": 389,
+  "klaster_duplikat": 31405,
+  "baris_dalam_klaster_ganda": 8474,
+  "sha256_mentah": {
+    "DON94SnAD_0.csv": "977f635335faaa0b220199e1e2e5caff7ec2d87482a585ca3182629fb61277ae",
+    "DTVFd_Rk-KJ.csv": "508d7ba5d62a0f7f353bc341ec3fbd16af03f64c4397a0a84925d050b27a07f9",
+    "DUdN5deExTD.csv": "e0b79d10db7aa87fe07a883b3e31164b4190a220469731a6ea7309dbf6495827",
+    "DX8xO2EDutM.csv": "8d07aa2be3e4d75decfd9a6911a9cbfa83511e8e6aba212cbf2196bbffeab731",
+    "DYR3czaxB9E.csv": "f9df5b798d4db8f7013b318165e7a79a43704a27bb0353674c0b254b253a9a24",
+    "DYSQkY4RX2K.csv": "5acc18d3650de5d2bf36882a6a445d1fc093a3ef297df084a09808ce4423c2b4",
+    "DYmUwyLEbx9.csv": "d0e435139ad78c916c9d7aca4bfef9c3d172917daa75a59aa36401741f780f1c",
+    "DaM_18rj5OO.csv": "e7c8fd506e55adb9d7c4fddcae04e241b3dcb724e64e8a0361f1cf37d8db63d0",
+    "DaNC_lKSytw.csv": "90c6dc7ae6e8c3129446bdc19f0a9112d3a7ceaac6aec7e1be750f020f24e723",
+    "DaR6fCMxfe-.csv": "2fb64b9593b431b10325a297f0d64d634fb5960a39655459c1d8e8e7b5763268",
+    "Dao9wWaDKzY.csv": "4a4f1041cb44e691b33f6275ef715b860ab49820349d78944521df680cc39c4d"
+  }
+}
