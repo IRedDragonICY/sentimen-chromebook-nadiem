@@ -140,3 +140,27 @@ terprogram.
 **Risiko.** Anotator tunggal → bias sistematis mungkin tak terdeteksi oleh ukuran
 konsistensi diri. Mitigasi: guideline publik + label publik (bisa diaudit baris per baris),
 dan keterbatasan dinyatakan di model card.
+
+---
+
+## D7 — Anotator silver: qwen lokal via GPU, zero-shot (few-shot ditolak dgn bukti)
+
+**Konteks.** Setelah gold 710 selesai, silver dilabeli dengan LLM lokal (Ollama).
+Dua masalah ditemukan & diperbaiki: (a) qwen3.6-abliterated 21GB tak muat 6GB VRAM →
+CPU, 15,8 dtk/komentar, output kosong (thinking-mode); (b) `ollama serve` mula-mula
+jalan CPU-only karena `CUDA_VISIBLE_DEVICES` kosong di environment (akar yang sama
+membuat torch tak lihat GPU). Setelah serve di-restart dengan `CUDA_VISIBLE_DEVICES=0`,
+qwen3.5:4b berjalan di GPU (3965 MiB, 65 tok/dtk, ~1,3 dtk/komentar).
+
+**Keputusan.** Anotator = qwen lokal, **zero-shot**, `think=False`, `format=json`,
+suhu 0. Few-shot **ditolak**: pada 80 sampel gold, few-shot menurunkan sikap
+macro-F1 (0,504 vs 0,568 zero-shot) — exemplar membiasi model kecil. Angka
+zero-shot ini sekaligus menjadi **baseline LLM** yang dilaporkan jujur terhadap
+gold (bukan diklaim sebagai akurasi model akhir).
+
+**Model final** dipilih dari perbandingan agreement 4b vs 9b terhadap gold (pengguna
+menyetujui anggaran waktu panjang, jadi kualitas diutamakan di atas kecepatan).
+Silver diperbesar ke ~6000 kandidat karena anggaran waktu memungkinkan lebih
+banyak data latih. Silver tetap di-*down-weight* (0,4) saat training karena berisik;
+metrik akhir diukur pada gold test, sehingga silver berisik tak bisa menggelembungkan
+klaim.
