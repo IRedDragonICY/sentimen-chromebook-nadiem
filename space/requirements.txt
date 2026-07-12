@@ -1,0 +1,5 @@
+spaces
+torch
+transformers
+huggingface_hub
+gradio

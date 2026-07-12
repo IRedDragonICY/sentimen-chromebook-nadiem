@@ -245,31 +245,46 @@ def hal_topik(df_all, d):
                "dengan leksikon terkurasi yang dapat diaudit, bukan model kotak-hitam.")
 
 
+def _kartu_prediksi(teks, sikap, emosi, keyakinan_sikap, ragu):
+    st.markdown(
+        f'<div class="komentar">{teks}<div class="meta">'
+        f'{pill_sikap(sikap)} {pill_emosi(emosi)}'
+        f' · keyakinan sikap {keyakinan_sikap:.0%}'
+        + (" · <b>model ragu</b>" if ragu else "")
+        + "</div></div>", unsafe_allow_html=True)
+
+
 def hal_coba(df_all, d):
     judul_bagian("Coba model",
                  "Tempel komentar (satu per baris) untuk melihat prediksi sikap, emosi, "
-                 "dan keyakinan model. Model ini dilatih pada data kasus ini, di luar "
-                 "domain tersebut hasilnya kurang bermakna.")
+                 "dan keyakinan model. Inferensi berjalan di HuggingFace. Model dilatih "
+                 "pada data kasus ini, di luar domain tersebut hasilnya kurang bermakna.")
     contoh = "Allah bersama bapak Nadiem, semangat pak\nInilah fungsi menaikkan gaji hakim 280%\nBukti korupsinya mana sih?"
     teks = st.text_area("Komentar", contoh, height=140)
-    if st.button("Analisis", type="primary"):
+    if not st.button("Analisis", type="primary"):
+        return
+    baris = [t for t in teks.splitlines() if t.strip()]
+    if not baris:
+        st.info("Tulis minimal satu komentar.")
+        return
+    try:
+        with st.spinner("Menghubungi model di HuggingFace... "
+                        "(bila Space baru bangun dari tidur, tunggu sekitar 30 detik)"):
+            res = _klien_hf().predict(teks, api_name="/analisis")
+        for h in res.get("hasil", []):
+            _kartu_prediksi(h["teks"], h["sikap"], h["emosi"],
+                            h["keyakinan"]["sikap"], h["abstain"]["sikap"])
+    except Exception:
+        # Fallback: model lokal (mode pengembangan dengan PyTorch + bobot terpasang).
         try:
-            from nadiem_sentimen.inference import MesinSentimen
-            mesin = muat_mesin()
-            baris = [t for t in teks.splitlines() if t.strip()]
-            for h in mesin.predict(baris):
-                st.markdown(
-                    f'<div class="komentar">{h.teks}<div class="meta">'
-                    f'{pill_sikap(h.sikap)} {pill_emosi(h.emosi)}'
-                    f' · keyakinan sikap {h.keyakinan["sikap"]:.0%}'
-                    + (" · <b>model ragu</b>" if h.abstain["sikap"] else "")
-                    + "</div></div>", unsafe_allow_html=True)
-        except (FileNotFoundError, ImportError):
-            st.warning("Fitur ini memerlukan PyTorch dan model IndoBERT. "
-                       "Untuk menjalankan secara lokal, install dependensi lengkap: "
-                       "`pip install -r requirements-dev.txt && pip install -e .`\n\n"
-                       "Model tersedia di: "
-                       "[HuggingFace](https://huggingface.co/IRedDragonICY/indobert-sentimen-chromebook)")
+            for h in muat_mesin().predict(baris):
+                _kartu_prediksi(h.teks, h.sikap, h.emosi,
+                                h.keyakinan["sikap"], h.abstain["sikap"])
+        except (FileNotFoundError, ImportError, OSError):
+            st.warning(
+                "Model di HuggingFace sedang tidak dapat dihubungi. Coba lagi "
+                "sebentar, Space mungkin sedang bangun dari tidur. Model tersedia di "
+                "[HuggingFace](https://huggingface.co/IRedDragonICY/indobert-sentimen-chromebook).")
 
 
 def hal_metodologi(df_all, d):
@@ -296,6 +311,23 @@ populasi. Model tidak untuk moderasi otomatis tanpa manusia, tidak untuk menilai
 individu, dan tidak untuk klaim ilmiah tanpa validasi lanjutan.
     """)
     disclaimer(DISCLAIMER_INTI)
+
+
+RUANG_HF = "IRedDragonICY/sentimen-chromebook-api"  # Space inferensi (gradio_client)
+
+
+@st.cache_resource(show_spinner=False)
+def _klien_hf():
+    """Klien ke Space inferensi HuggingFace. Nama Space dan (bila privat) token
+    dapat dioverride lewat st.secrets['hf_space'] / st.secrets['hf_token']."""
+    from gradio_client import Client
+    nama, token = RUANG_HF, None
+    try:
+        nama = st.secrets.get("hf_space", RUANG_HF)
+        token = st.secrets.get("hf_token")
+    except Exception:
+        pass
+    return Client(nama, hf_token=token) if token else Client(nama)
 
 
 @st.cache_resource(show_spinner="Memuat model...")
