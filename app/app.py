@@ -18,6 +18,7 @@ import streamlit as st
 # saudara diimpor sebagai top-level (bukan paket "app", nama itu bentrok dengan
 # skrip utama ini sendiri dan memicu circular import).
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import data as D
 import grafik as G
