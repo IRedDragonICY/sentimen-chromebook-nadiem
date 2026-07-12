@@ -128,10 +128,14 @@ dimensi peristiwa. UI menyajikan pergeseran sikap antar fase.
 terprogram (batch API) tidak tersedia. Anotatornya adalah Claude (Fable 5) langsung di
 sesi pengerjaan, mengikuti guideline tertulis di `skills/sentiment-labeling-id/SKILL.md`.
 
+> **Diperbarui oleh [[D8]]:** poin (b) di bawah ditulis sebelum model lokal (ornith/qwen
+> via Ollama) tersedia. Silver akhirnya dilabeli anotator LLM lokal terprogram, bukan
+> label-langsung — lihat D8. Sisa keputusan D6 (gold in-session, label di-commit) tetap.
+
 **Keputusan.** (a) Gold set dilabeli langsung dengan pass ganda pada subsampel ≥20% dan
-kesepakatan test–retest dilaporkan. (b) Silver set = gabungan label langsung pada wakil
-klaster duplikat + aturan deterministik untuk kelas yang memang rule-able (emoji-only →
-emosi; pola spam ternormalisasi). (c) Seluruh file label di-commit ke repo, sehingga
+kesepakatan test–retest dilaporkan. (b) ~~Silver set = gabungan label langsung + aturan
+deterministik~~ → digantikan D8: silver via anotator LLM lokal (ornith:9b). Aturan
+deterministik emoji-only tetap dipakai di inferensi. (c) Seluruh file label di-commit ke repo, sehingga
 training tetap 100% reproducible dari artefak meski proses anotasinya (sebagaimana semua
 anotasi manusia) adalah penilaian yang tidak bisa di-"re-run" mekanis. (d) Template prompt
 untuk pelabelan API disertakan di SKILL agar pihak lain bisa memperluas label dengan jalur
