@@ -94,7 +94,7 @@ CSS_TEMPLATE = """
 html, body, [class*="css"]{ font-family:var(--font); }
 .stApp{ background:var(--bg); color:var(--ink); }
 .stApp::before{
-  content:""; position:fixed; top:0; right:0;
+  content:""; position:fixed; bottom:0; right:0;
   width:500px; height:526px; z-index:0; pointer-events:none;
   background-image:var(--bg-siluet); background-size:cover;
   opacity:.25;
