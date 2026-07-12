@@ -8,6 +8,9 @@ sengaja abu, dimitigasi label langsung + tampilan tabel.
 
 from __future__ import annotations
 
+import base64
+from pathlib import Path
+
 # --- Palet kategorikal tervalidasi (light, dark) --------------------------------
 SIKAP_WARNA = {
     "pro_nadiem": ("#1baf7a", "#199e70"),
@@ -56,9 +59,21 @@ def peta_warna_plotly(peta, gelap=False):
 
 
 # --- CSS: token + reset chrome Streamlit ---------------------------------------
-CSS = """
+_ASSETS = Path(__file__).resolve().parent / "assets"
+
+def _bg_siluet_uri() -> str:
+    """Muat gambar siluet duotone sebagai data URI base64."""
+    p = _ASSETS / "nadiem-siluet.png"
+    if p.exists():
+        return f"url(data:image/png;base64,{base64.b64encode(p.read_bytes()).decode()})"
+    return "none"
+
+_BG_SILUET = _bg_siluet_uri()
+
+CSS_TEMPLATE = """
 <style>
 :root{
+  --bg-siluet:{BG_SILUET};
   --bg:#FBFAF9; --surface:#FFFFFF; --surface-2:#F4F2EF; --border:#E7E3DD;
   --ink:#1A1614; --ink-2:#5C564F; --ink-3:#8A837A;
   --brand:#0E4D45; --brand-2:#1baf7a; --brand-ink:#0a3a34;
@@ -78,6 +93,15 @@ CSS = """
 }
 html, body, [class*="css"]{ font-family:var(--font); }
 .stApp{ background:var(--bg); color:var(--ink); }
+.stApp::before{
+  content:""; position:fixed; top:0; right:0;
+  width:500px; height:526px; z-index:0; pointer-events:none;
+  background-image:var(--bg-siluet); background-size:cover;
+  opacity:.25;
+}
+@media (prefers-color-scheme: dark){
+  .stApp::before{ opacity:.45; }
+}
 .block-container{ max-width:1180px; padding-top:2.4rem; padding-bottom:4rem; }
 
 /* Header hero */
@@ -155,6 +179,8 @@ header[data-testid="stHeader"]{ background:transparent; }
 [data-testid="stExpandSidebarButton"]{ visibility:visible; opacity:1; }
 </style>
 """
+
+CSS = CSS_TEMPLATE.replace("{BG_SILUET}", _BG_SILUET)
 
 
 def plotly_layout(gelap=False):
