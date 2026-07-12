@@ -26,7 +26,11 @@ $PY -m nadiem_sentimen.train
 log "4/5 Evaluasi jujur semua model pada gold test (+ baseline LLM)"
 $PY -m nadiem_sentimen.evaluate --llm "$MODEL_ANOTATOR"
 
-log "5/5 Skor seluruh 38.845 komentar untuk aplikasi"
+log "5/6 Skor seluruh 38.845 komentar untuk aplikasi"
 $PY -m nadiem_sentimen.skor_penuh
 
-log "PIPELINE SELESAI. Artefak: models/sentimen-id/, reports/evaluasi.json, data/processed/skor.parquet"
+log "6/6 Hitung temuan produk + isi metrik nyata ke dokumen"
+$PY -m nadiem_sentimen.temuan
+$PY bin/isi_dokumen.py
+
+log "PIPELINE SELESAI. Artefak: models/sentimen-id/, reports/{evaluasi,temuan}.json, data/processed/skor.parquet"

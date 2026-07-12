@@ -1,0 +1,15 @@
+# Tema dasar Streamlit diselaraskan dengan design token app (app/tema.py).
+# Warna chrome bawaan mengikuti palet agar tak bertabrakan dengan CSS kustom.
+[theme]
+base = "light"
+primaryColor = "#0E4D45"
+backgroundColor = "#FBFAF9"
+secondaryBackgroundColor = "#F4F2EF"
+textColor = "#1A1614"
+font = "sans serif"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false
