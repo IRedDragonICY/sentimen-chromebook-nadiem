@@ -138,7 +138,7 @@ def main():
     ap.add_argument("--epochs", type=int, default=6)
     ap.add_argument("--batch", type=int, default=16)
     ap.add_argument("--lr", type=float, default=2e-5)
-    ap.add_argument("--max_len", type=int, default=160)
+    ap.add_argument("--max_len", type=int, default=128)
     ap.add_argument("--keluaran", type=Path, default=None)
     args = ap.parse_args()
 

@@ -164,3 +164,41 @@ Silver diperbesar ke ~6000 kandidat karena anggaran waktu memungkinkan lebih
 banyak data latih. Silver tetap di-*down-weight* (0,4) saat training karena berisik;
 metrik akhir diukur pada gold test, sehingga silver berisik tak bisa menggelembungkan
 klaim.
+
+---
+
+## D8 — Anotator silver final: ornith-1.0-9B (dipilih dari perbandingan vs gold)
+
+**Konteks.** Pengguna meminta mencoba ornith-1.0-9B (model coding agentic terbuka).
+Karena benchmark unggulnya adalah *coding* (bukan NLU Indonesia), pilihan diverifikasi
+empiris terhadap gold, bukan diasumsikan.
+
+**Perbandingan (92 sampel gold terstratifikasi, zero-shot, GPU):**
+
+| model | sikap macro-F1 | acc | emosi macro-F1 | dtk/kom | keterangan |
+|---|---|---|---|---|---|
+| qwen3.5:4b | 0.602 | 0.659 | **0.711** | **0.93** | muat penuh GPU |
+| qwen3.5:9b | 0.553 | 0.634 | 0.687 | 2.87 | lebih buruk |
+| ornith:9b  | 0.596 | **0.685** | 0.696 | 1.64 | terbaik di kelas peradilan/pemerintah |
+
+**Keputusan.** Silver dilabeli **ornith:9b**. Alasan: akurasi sikap tertinggi (0.685)
+dan F1 tertinggi pada dua kelas paling penting & paling mudah tertukar di wacana ini
+(`kritik_peradilan` 0.86, `kritik_pemerintah` 0.67). Selisih macro-F1 vs qwen 4b
+(0.596 vs 0.602) berada dalam derau (n=92). Masalah teknis diperbaiki lebih dulu:
+(a) ollama CPU-only karena `CUDA_VISIBLE_DEVICES` kosong → di-restart dengan GPU;
+(b) ornith kadang menulis label emosi mendekati ("dukacita"/"duk") → ditambah
+ekstraksi JSON robust + normalisasi label prefix → tingkat gagal 14% turun ke 0%.
+
+**Kesehatan proses:** pada run penuh, laju ~1,67 dtk/komentar, gagal-parse < 1%.
+
+---
+
+## D9 — Verifikasi pipeline end-to-end di CPU sebelum run GPU
+
+Sebelum melepas pipeline latih→eval→skor tanpa pengawasan, seluruh tahap diuji di CPU
+dengan data gold kecil (1 epoch). Ini menemukan & memperbaiki tiga bug yang akan
+menggagalkan run semalam: (1) `to_numpy()` read-only pada `rng.shuffle` di split;
+(2) kolom `post` hilang di gold/silver (diturunkan dari `id`); (3) temperature scaling
+& ambang abstain degenerate (T→0,05, selalu abstain) → dibatasi T∈[0,5; 5,0] dan ambang
+≤ median keyakinan. Baseline TF-IDF terukur kuat (sikap macro-F1 0,507) — menjadi
+patokan yang harus dikalahkan fine-tune agar klaim bermakna.
