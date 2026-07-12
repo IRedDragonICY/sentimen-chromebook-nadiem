@@ -16,6 +16,13 @@ import streamlit as st
 ROOT = Path(__file__).resolve().parents[1]
 SKOR = ROOT / "data" / "processed" / "skor.parquet"
 PROFIL = ROOT / "data" / "processed" / "profil.json"
+TEMUAN = ROOT / "reports" / "temuan.json"
+
+
+@st.cache_data(show_spinner=False)
+def muat_temuan() -> dict | None:
+    import json
+    return json.loads(TEMUAN.read_text()) if TEMUAN.exists() else None
 
 # Kolom yang boleh masuk UI — username sengaja TIDAK disertakan.
 KOLOM_UI = ["id", "post", "waktu", "fase", "likes", "is_reply", "teks_bersih",

@@ -55,6 +55,53 @@ def bilah_filter(df: pd.DataFrame):
 
 
 # ---------------------------------------------------------------- halaman
+def insight_utama(t: dict) -> list[tuple[str, str, list]]:
+    """Bangun 2–3 insight naratif dari temuan.json (angka + contoh nyata)."""
+    out = []
+    komp = t["komposisi_sikap_persen"]
+
+    # 1. Fokus kemarahan: peradilan vs pemerintah vs Nadiem.
+    tgt = t["target"]
+    if tgt.get("peradilan", 0) or tgt.get("pemerintah", 0):
+        dom = max(("peradilan", "pemerintah", "kontra_nadiem"), key=lambda k: tgt.get(k, 0))
+        peta = {"peradilan": "lembaga peradilan (hakim/jaksa/vonis)",
+                "pemerintah": "pemerintah dan tokoh politik",
+                "kontra_nadiem": "Nadiem sendiri"}
+        out.append((
+            f"Kemarahan paling banyak diarahkan ke {peta[dom]}.",
+            f"Dari komentar non-spam, {SIKAP_LABEL['kritik_peradilan']} muncul "
+            f"{komp.get('kritik_peradilan', 0)}% dan {SIKAP_LABEL['kritik_pemerintah']} "
+            f"{komp.get('kritik_pemerintah', 0)}%, sementara {SIKAP_LABEL['pro_nadiem']} "
+            f"{komp.get('pro_nadiem', 0)}%. Wacana ini lebih banyak menyoal keadilan proses "
+            f"hukum ketimbang sekadar pro atau kontra terhadap satu orang.",
+            t["contoh"].get("kritik_peradilan", []),
+        ))
+
+    # 2. Pergeseran antar fase (penahanan → vonis).
+    fase = t.get("pergeseran_fase", {})
+    if "f3_mei2026" in fase and "f4_jul2026" in fase:
+        pro_mei = fase["f3_mei2026"].get("pro_nadiem", 0)
+        krit_jul = fase["f4_jul2026"].get("kritik_peradilan", 0)
+        out.append((
+            "Fokus percakapan bergeser dari simpati ke kemarahan pada peradilan.",
+            f"Saat penahanan (Mei 2026), dukungan untuk Nadiem menonjol "
+            f"({pro_mei}% komentar fase itu). Saat tuntutan dan vonis (Jun–Jul 2026), "
+            f"kritik terhadap peradilan menguat menjadi {krit_jul}% — mencerminkan reaksi "
+            f"atas berat/janggalnya vonis dan isu kenaikan gaji hakim.",
+            t["contoh"].get("kritik_pemerintah", []),
+        ))
+
+    # 3. Spam & keterwakilan.
+    out.append((
+        "Angka sudah dibersihkan dari spam, tapi tetap bukan potret opini nasional.",
+        f"{t['spam']['persen']}% komentar terdeteksi spam/promosi (mis. judi online) dan "
+        f"dikecualikan dari statistik. Sisanya pun berasal dari 11 unggahan Instagram — "
+        f"bukan sampel acak penduduk Indonesia, sehingga tak bisa digeneralisasi.",
+        [],
+    ))
+    return out[:3]
+
+
 def hal_ringkasan(df_all, d):
     hero("Analisis Sentimen Wacana Publik",
          "Cermin Publik: Kasus Pengadaan Chromebook",
@@ -78,6 +125,17 @@ def hal_ringkasan(df_all, d):
     ])
 
     disclaimer(DISCLAIMER_INTI)
+
+    temuan = D.muat_temuan()
+    if temuan:
+        judul_bagian("Yang menonjol dari data", "Tiga pembacaan utama, disandingkan "
+                     "dengan angka dan contoh komentar nyata agar bisa Anda periksa sendiri.")
+        for judul, teks, contoh in insight_utama(temuan):
+            st.markdown(f'<div class="card"><b>{judul}</b><br>'
+                        f'<span style="color:var(--ink-2)">{teks}</span></div>',
+                        unsafe_allow_html=True)
+            if contoh:
+                st.caption("Contoh: " + " · ".join(f"“{c[:90]}”" for c in contoh[:2]))
 
     c1, c2 = st.columns([1.05, 1])
     with c1:
