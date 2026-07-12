@@ -1,0 +1,48 @@
+{
+  "encoder": "indobenchmark/indobert-base-p1",
+  "tugas": {
+    "spam": [
+      "bukan_spam",
+      "spam"
+    ],
+    "sikap": [
+      "pro_nadiem",
+      "kontra_nadiem",
+      "kritik_peradilan",
+      "kritik_pemerintah",
+      "netral_informasional",
+      "tak_jelas"
+    ],
+    "emosi": [
+      "marah",
+      "duka",
+      "sinis",
+      "harapan",
+      "netral"
+    ]
+  },
+  "suhu_kalibrasi": {
+    "spam": 0.5,
+    "sikap": 1.5164810419082642,
+    "emosi": 1.1803184747695923
+  },
+  "ambang_abstain": {
+    "spam": 0.5051645636558533,
+    "sikap": 0.6168045401573181,
+    "emosi": 0.6445851922035217
+  },
+  "epoch_terbaik": 1,
+  "val_macro_f1_sikap": 0.5067547190847769,
+  "max_len": 128,
+  "n_train": 6233,
+  "n_train_gold": 321,
+  "n_train_silver": 5912,
+  "hash_id_train": "f70d606893618909",
+  "hyperparam": {
+    "epochs": 6,
+    "batch": 16,
+    "lr": 2e-05,
+    "bobot_silver": 0.4,
+    "seed": 42
+  }
+}

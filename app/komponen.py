@@ -1,7 +1,7 @@
-"""Komponen UI reusable — KPI, pill sikap, kartu komentar, state kosong.
+"""Komponen UI reusable, KPI, pill sikap, kartu komentar, state kosong.
 
 Semua komponen memakai token dari tema.py. Username tidak pernah ditampilkan
-(privasi/PII) — lihat anonimisasi di muat_data.
+(privasi/PII), lihat anonimisasi di muat_data.
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ import html
 
 import streamlit as st
 
-from .tema import EMOSI_LABEL, EMOSI_WARNA, SIKAP_LABEL, SIKAP_WARNA
+from tema import EMOSI_LABEL, EMOSI_WARNA, SIKAP_LABEL, SIKAP_WARNA
 
 
 def hero(kicker: str, judul: str, deskripsi: str):

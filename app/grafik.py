@@ -1,4 +1,4 @@
-"""Fungsi grafik Plotly — mengikuti kaidah skill dataviz.
+"""Fungsi grafik Plotly, mengikuti kaidah skill dataviz.
 
 Prinsip: satu grafik menjawab satu pertanyaan; palet sikap/emosi tervalidasi &
 konsisten; label langsung ketimbang legenda berlebih; sumbu jujur (bar mulai 0).
@@ -9,7 +9,7 @@ from __future__ import annotations
 import pandas as pd
 import plotly.graph_objects as go
 
-from .tema import (
+from tema import (
     EMOSI_LABEL, EMOSI_WARNA, FASE_LABEL, FASE_URUT,
     SIKAP_LABEL, SIKAP_WARNA, plotly_layout,
 )

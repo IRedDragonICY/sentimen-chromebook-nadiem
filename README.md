@@ -69,7 +69,13 @@ MODEL_CARD.md                kemampuan, keterbatasan, bias, larangan pakai
 
 ## Temuan utama
 
-_Diisi setelah pipeline evaluasi & skoring dijalankan (lihat `reports/`)._
+<!-- temuan:mulai -->
+- Dari 38,845 komentar, 0.5% terdeteksi spam/promosi dan dikecualikan dari statistik.
+- Sikap terbanyak: **tak_jelas** 26.5%, **pro_nadiem** 25.1%, **kritik_peradilan** 22.8%.
+- Sub-isu teramai beserta sikap dominannya: kritik_peradilan pada _Proses peradilan_, pro_nadiem pada _Agama & moral_, kritik_pemerintah pada _Politik nasional_.
+
+_Rincian + contoh komentar: `reports/temuan.json` dan aplikasi._
+<!-- temuan:akhir -->
 
 ## Uji
 

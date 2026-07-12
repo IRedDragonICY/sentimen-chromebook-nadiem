@@ -1,4 +1,4 @@
-"""Pemuatan data untuk app — di-cache, dan meng-anonimkan identitas.
+"""Pemuatan data untuk app, di-cache, dan meng-anonimkan identitas.
 
 Privasi (lihat brief §10): username adalah PII. Data yang dipakai UI membuang
 kolom username sepenuhnya; tak ada fitur yang menonjolkan/meng-agregasi akun
@@ -24,7 +24,7 @@ def muat_temuan() -> dict | None:
     import json
     return json.loads(TEMUAN.read_text()) if TEMUAN.exists() else None
 
-# Kolom yang boleh masuk UI — username sengaja TIDAK disertakan.
+# Kolom yang boleh masuk UI, username sengaja TIDAK disertakan.
 KOLOM_UI = ["id", "post", "waktu", "fase", "likes", "is_reply", "teks_bersih",
             "n_karakter", "hanya_emoji", "emoji", "spam", "sikap", "emosi",
             "keyakinan_sikap", "keyakinan_emosi", "abstain_sikap"]

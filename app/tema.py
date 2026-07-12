@@ -1,9 +1,9 @@
-"""Sistem desain aplikasi — token, warna, dan template Plotly.
+"""Sistem desain aplikasi, token, warna, dan template Plotly.
 
 Satu sumber kebenaran untuk warna & tipografi (lihat skills/design-system).
 Palet sikap/emosi memakai slot kategorikal yang sudah divalidasi colorblind-safe
 (skill dataviz): CVD ΔE > 60 pada mode terang & gelap. Kelas "netral"/"tak_jelas"
-sengaja abu — dimitigasi label langsung + tampilan tabel.
+sengaja abu, dimitigasi label langsung + tampilan tabel.
 """
 
 from __future__ import annotations
@@ -40,9 +40,9 @@ EMOSI_LABEL = {
 }
 FASE_LABEL = {
     "f1_sep2025": "Penyelidikan awal · Sep 2025",
-    "f2_awal2026": "Babak KPK · Jan–Feb 2026",
+    "f2_awal2026": "Babak KPK · Jan-Feb 2026",
     "f3_mei2026": "Penahanan · Mei 2026",
-    "f4_jul2026": "Tuntutan & Vonis · Jun–Jul 2026",
+    "f4_jul2026": "Tuntutan & Vonis · Jun-Jul 2026",
 }
 FASE_URUT = ["f1_sep2025", "f2_awal2026", "f3_mei2026", "f4_jul2026"]
 
@@ -126,7 +126,14 @@ html, body, [class*="css"]{ font-family:var(--font); }
 .stTabs [data-baseweb="tab"]{ font-weight:600; color:var(--ink-2); }
 button[kind="primary"]{ background:var(--brand); border:none; }
 
-#MainMenu, footer, header[data-testid="stHeader"]{ visibility:hidden; height:0; }
+/* Sembunyikan tombol Deploy, menu, status, dan footer. Biarkan stToolbar tampil
+   agar tombol buka-sidebar (stExpandSidebarButton) tetap ada dan bisa diklik. */
+#MainMenu, footer,
+[data-testid="stBaseButton-header"],
+[data-testid="stMainMenuButton"],
+[data-testid="stStatusWidget"]{ display:none; }
+header[data-testid="stHeader"]{ background:transparent; }
+[data-testid="stExpandSidebarButton"]{ visibility:visible; opacity:1; }
 </style>
 """
 

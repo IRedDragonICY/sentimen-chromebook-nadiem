@@ -1,0 +1,117 @@
+{
+  "total": 38845,
+  "spam": {
+    "n": 203,
+    "persen": 0.5
+  },
+  "komposisi_sikap_persen": {
+    "tak_jelas": 26.5,
+    "pro_nadiem": 25.1,
+    "kritik_peradilan": 22.8,
+    "kontra_nadiem": 17.0,
+    "kritik_pemerintah": 6.7,
+    "netral_informasional": 1.9
+  },
+  "emosi_persen": {
+    "duka": 30.1,
+    "marah": 29.6,
+    "sinis": 21.2,
+    "netral": 10.9,
+    "harapan": 8.2
+  },
+  "pergeseran_fase": {
+    "f1_sep2025": {
+      "kontra_nadiem": 30.7,
+      "kritik_pemerintah": 7.9,
+      "kritik_peradilan": 5.3,
+      "netral_informasional": 13.2,
+      "pro_nadiem": 28.9,
+      "tak_jelas": 14.0
+    },
+    "f2_awal2026": {
+      "kontra_nadiem": 34.1,
+      "kritik_pemerintah": 8.1,
+      "kritik_peradilan": 7.0,
+      "netral_informasional": 3.0,
+      "pro_nadiem": 26.2,
+      "tak_jelas": 21.6
+    },
+    "f3_mei2026": {
+      "kontra_nadiem": 15.4,
+      "kritik_pemerintah": 6.5,
+      "kritik_peradilan": 8.6,
+      "netral_informasional": 2.0,
+      "pro_nadiem": 30.3,
+      "tak_jelas": 37.2
+    },
+    "f4_jul2026": {
+      "kontra_nadiem": 16.2,
+      "kritik_pemerintah": 6.7,
+      "kritik_peradilan": 27.3,
+      "netral_informasional": 1.7,
+      "pro_nadiem": 23.8,
+      "tak_jelas": 24.3
+    }
+  },
+  "target": {
+    "peradilan": 8823,
+    "pemerintah": 2592,
+    "kontra_nadiem": 6552,
+    "pro_nadiem": 9714
+  },
+  "bias_engagement_top1000": {
+    "pro_nadiem": 30.2,
+    "kritik_peradilan": 25.9,
+    "kontra_nadiem": 17.8,
+    "tak_jelas": 14.0,
+    "kritik_pemerintah": 7.6,
+    "netral_informasional": 4.5
+  },
+  "topik": {
+    "Proses peradilan": {
+      "n": 7956,
+      "sikap_dominan": "kritik_peradilan"
+    },
+    "Agama & moral": {
+      "n": 6337,
+      "sikap_dominan": "pro_nadiem"
+    },
+    "Politik nasional": {
+      "n": 6067,
+      "sikap_dominan": "kritik_pemerintah"
+    },
+    "Gojek & lapangan kerja": {
+      "n": 1002,
+      "sikap_dominan": "pro_nadiem"
+    },
+    "Kurikulum & pendidikan": {
+      "n": 842,
+      "sikap_dominan": "kontra_nadiem"
+    },
+    "Gaji hakim naik": {
+      "n": 821,
+      "sikap_dominan": "kritik_peradilan"
+    },
+    "Pengadaan Chromebook": {
+      "n": 694,
+      "sikap_dominan": "kontra_nadiem"
+    }
+  },
+  "contoh": {
+    "pro_nadiem": [
+      "Terang terangan banget kejanggalannya 😢",
+      "Ini sekelas pa Nadiem, apalgi rakyat jelata yang masih UMR 😪",
+      "Suara yang pakai mic sangat mewakili kita banget. \"Takut yah? Wah gawat ini..\" 🥹"
+    ],
+    "kritik_peradilan": [
+      "Inilah fungsi dari menaikkan gaji para hakim 280%.",
+      "Lucu Hukum di Negeri ini 😂😂..",
+      "Jd hakim itu pertanggungjawaban di akhiratnya ngeri banget 🙌😢"
+    ],
+    "kritik_pemerintah": [
+      "Masih menunggu Mulyono untuk segera diadili😌",
+      "Selagi Presiden nya masih satu komplotan, hukum di negeri ini gak akan ada perubahan...",
+      "Ikn merugikan negara kok Jokowi GK di adili"
+    ]
+  }
+}

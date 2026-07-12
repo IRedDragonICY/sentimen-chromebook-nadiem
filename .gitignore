@@ -10,3 +10,11 @@ data/processed/*.parquet
 
 # Cache HuggingFace lokal
 .hf_cache/
+
+# Paket ekspor Kaggle (tergenerasi)
+dist/
+data/.author_salt
+
+# Konfigurasi IDE dan lainnya
+.claude/
+.pytest_cache/

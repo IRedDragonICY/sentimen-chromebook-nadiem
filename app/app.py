@@ -1,4 +1,4 @@
-"""Cermin Publik — analisis sentimen wacana kasus Chromebook (Nadiem Makarim).
+"""Cermin Publik, analisis sentimen wacana kasus Chromebook (Nadiem Makarim).
 
 Aplikasi Streamlit. Seluruh teks Bahasa Indonesia. Menyajikan hasil analisis
 atas ~38.845 komentar Instagram dan inferensi langsung atas teks baru.
@@ -14,24 +14,29 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+# Streamlit menjalankan berkas ini dengan foldernya di sys.path, jadi modul
+# saudara diimpor sebagai top-level (bukan paket "app", nama itu bentrok dengan
+# skrip utama ini sendiri dan memicu circular import).
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from app import data as D
-from app import grafik as G
-from app.komponen import (
+import data as D
+import grafik as G
+from awan_kata import awan_html, hitung
+from komponen import (
     disclaimer, hero, judul_bagian, kartu_komentar, kpi_grid,
     pill_emosi, pill_sikap, state_kosong,
 )
-from app.tema import (
+from tema import (
     CSS, EMOSI_LABEL, FASE_LABEL, FASE_URUT, SIKAP_LABEL,
 )
 
-st.set_page_config(page_title="Cermin Publik — Sentimen Kasus Chromebook",
-                   page_icon="🪧", layout="wide")
+st.set_page_config(page_title="Cermin Publik: Sentimen Kasus Chromebook",
+                   page_icon="🪧", layout="wide",
+                   initial_sidebar_state="expanded")
 st.markdown(CSS, unsafe_allow_html=True)
 
 DISCLAIMER_INTI = (
-    "Data ini berupa komentar dari 11 unggahan Instagram — <b>bukan</b> survei yang "
+    "Data ini berupa komentar dari 11 unggahan Instagram, <b>bukan</b> survei yang "
     "mewakili opini publik Indonesia. Hasil tidak boleh digeneralisasi. Analisis "
     "bersifat netral: sistem mengukur sentimen komentar, tidak menilai bersalah atau "
     "tidaknya siapa pun, dan menjunjung asas praduga tak bersalah."
@@ -56,7 +61,7 @@ def bilah_filter(df: pd.DataFrame):
 
 # ---------------------------------------------------------------- halaman
 def insight_utama(t: dict) -> list[tuple[str, str, list]]:
-    """Bangun 2–3 insight naratif dari temuan.json (angka + contoh nyata)."""
+    """Bangun 2-3 insight naratif dari temuan.json (angka + contoh nyata)."""
     out = []
     komp = t["komposisi_sikap_persen"]
 
@@ -77,7 +82,7 @@ def insight_utama(t: dict) -> list[tuple[str, str, list]]:
             t["contoh"].get("kritik_peradilan", []),
         ))
 
-    # 2. Pergeseran antar fase (penahanan → vonis).
+    # 2. Pergeseran antar fase (penahanan ke vonis).
     fase = t.get("pergeseran_fase", {})
     if "f3_mei2026" in fase and "f4_jul2026" in fase:
         pro_mei = fase["f3_mei2026"].get("pro_nadiem", 0)
@@ -85,8 +90,8 @@ def insight_utama(t: dict) -> list[tuple[str, str, list]]:
         out.append((
             "Fokus percakapan bergeser dari simpati ke kemarahan pada peradilan.",
             f"Saat penahanan (Mei 2026), dukungan untuk Nadiem menonjol "
-            f"({pro_mei}% komentar fase itu). Saat tuntutan dan vonis (Jun–Jul 2026), "
-            f"kritik terhadap peradilan menguat menjadi {krit_jul}% — mencerminkan reaksi "
+            f"({pro_mei}% komentar fase itu). Saat tuntutan dan vonis (Jun-Jul 2026), "
+            f"kritik terhadap peradilan menguat menjadi {krit_jul}%, mencerminkan reaksi "
             f"atas berat/janggalnya vonis dan isu kenaikan gaji hakim.",
             t["contoh"].get("kritik_pemerintah", []),
         ))
@@ -95,7 +100,7 @@ def insight_utama(t: dict) -> list[tuple[str, str, list]]:
     out.append((
         "Angka sudah dibersihkan dari spam, tapi tetap bukan potret opini nasional.",
         f"{t['spam']['persen']}% komentar terdeteksi spam/promosi (mis. judi online) dan "
-        f"dikecualikan dari statistik. Sisanya pun berasal dari 11 unggahan Instagram — "
+        f"dikecualikan dari statistik. Sisanya pun berasal dari 11 unggahan Instagram, "
         f"bukan sampel acak penduduk Indonesia, sehingga tak bisa digeneralisasi.",
         [],
     ))
@@ -106,7 +111,7 @@ def hal_ringkasan(df_all, d):
     hero("Analisis Sentimen Wacana Publik",
          "Cermin Publik: Kasus Pengadaan Chromebook",
          "Bagaimana warganet Instagram bereaksi terhadap kasus hukum yang menjerat "
-         "Nadiem Makarim — dari penyelidikan hingga vonis. Setiap komentar dinilai "
+         "Nadiem Makarim, dari penyelidikan hingga vonis. Setiap komentar dinilai "
          "sikap dan emosinya oleh model bahasa Indonesia yang dilatih khusus.")
 
     total = len(d)
@@ -116,11 +121,11 @@ def hal_ringkasan(df_all, d):
     kpi_grid([
         {"label": "Komentar dianalisis", "value": f"{total:,}",
          "sub": f"{n_spam:,} spam dikecualikan"},
-        {"label": "Sikap terbanyak", "value": SIKAP_LABEL[dom.index[0]] if len(dom) else "–",
+        {"label": "Sikap terbanyak", "value": SIKAP_LABEL[dom.index[0]] if len(dom) else "-",
          "sub": f"{dom.iloc[0] / total:.0%} dari komentar" if len(dom) else ""},
-        {"label": "Emosi dominan", "value": EMOSI_LABEL[dom_emosi.index[0]] if len(dom_emosi) else "–",
+        {"label": "Emosi dominan", "value": EMOSI_LABEL[dom_emosi.index[0]] if len(dom_emosi) else "-",
          "sub": f"{dom_emosi.iloc[0] / total:.0%} dari komentar" if len(dom_emosi) else ""},
-        {"label": "Rentang waktu", "value": "Sep 2025 – Jul 2026",
+        {"label": "Rentang waktu", "value": "Sep 2025 - Jul 2026",
          "sub": "empat gelombang peristiwa"},
     ])
 
@@ -135,27 +140,27 @@ def hal_ringkasan(df_all, d):
                         f'<span style="color:var(--ink-2)">{teks}</span></div>',
                         unsafe_allow_html=True)
             if contoh:
-                st.caption("Contoh: " + " · ".join(f"“{c[:90]}”" for c in contoh[:2]))
+                st.caption("Contoh: " + " · ".join(f'"{c[:90]}"' for c in contoh[:2]))
 
     c1, c2 = st.columns([1.05, 1])
     with c1:
-        judul_bagian("Komposisi sikap", "Wacana ini terarah ke banyak pihak — bukan "
+        judul_bagian("Komposisi sikap", "Wacana ini terarah ke banyak pihak, bukan "
                      "sekadar pro atau kontra Nadiem.")
         if total:
-            st.plotly_chart(G.komposisi_sikap(d), use_container_width=True,
+            st.plotly_chart(G.komposisi_sikap(d), width="stretch",
                             config={"displayModeBar": False})
         else:
             state_kosong("Longgarkan filter di samping.")
     with c2:
         judul_bagian("Emosi yang mengemuka", "Nada afektif komentar secara keseluruhan.")
         if total:
-            st.plotly_chart(G.emosi_bar(d), use_container_width=True,
+            st.plotly_chart(G.emosi_bar(d), width="stretch",
                             config={"displayModeBar": False})
 
     judul_bagian("Denyut percakapan", "Volume komentar harian; lonjakan menandai "
                  "peristiwa besar dalam kasus.")
     if total:
-        st.plotly_chart(G.volume_harian(d), use_container_width=True,
+        st.plotly_chart(G.volume_harian(d), width="stretch",
                         config={"displayModeBar": False})
 
 
@@ -167,6 +172,20 @@ def hal_eksplorasi(df_all, d):
     dd = d[d["teks_bersih"].str.contains(cari, case=False, na=False)] if cari else d
     st.caption(f"{len(dd):,} komentar cocok.")
 
+    st.markdown(
+        '<div class="section-title">Awan kata</div>'
+        '<div class="section-sub">Kata yang paling sering muncul pada komentar terpilih. '
+        'Ukuran huruf = frekuensi; warna = sikap yang paling dicirikan kata itu '
+        '(lihat legenda). Spam dikecualikan kecuali diaktifkan di filter.</div>',
+        unsafe_allow_html=True)
+    n_kata = st.slider("Jumlah kata", 30, 120, 70, step=10, key="n_awan",
+                       label_visibility="collapsed")
+    if len(dd):
+        st.markdown(awan_html(hitung(dd, n=n_kata)), unsafe_allow_html=True)
+    else:
+        state_kosong("Tak ada komentar pada filter ini.")
+
+    st.markdown('<div class="section-title">Komentar teratas</div>', unsafe_allow_html=True)
     kol = st.columns(2)
     for i, (_, r) in enumerate(dd.nlargest(12, "likes").iterrows()):
         with kol[i % 2]:
@@ -179,7 +198,7 @@ def hal_eksplorasi(df_all, d):
         tampil["emosi"] = tampil["emosi"].map(EMOSI_LABEL)
         tampil["fase"] = tampil["fase"].map(FASE_LABEL)
         tampil.columns = ["Komentar", "Sikap", "Emosi", "Suka", "Fase"]
-        st.dataframe(tampil, use_container_width=True, height=420, hide_index=True)
+        st.dataframe(tampil, width="stretch", height=420, hide_index=True)
 
 
 def hal_tren(df_all, d):
@@ -187,7 +206,7 @@ def hal_tren(df_all, d):
                  "Membandingkan komposisi sikap pada empat gelombang: penyelidikan awal, "
                  "babak KPK, penahanan, lalu tuntutan dan vonis.")
     if len(d):
-        st.plotly_chart(G.tren_sikap_fase(d), use_container_width=True,
+        st.plotly_chart(G.tren_sikap_fase(d), width="stretch",
                         config={"displayModeBar": False})
         disclaimer("Perhatikan pergeseran fokus kemarahan dari waktu ke waktu. "
                    "Proporsi dibaca per fase (setiap kolom berjumlah 100%).")
@@ -204,7 +223,7 @@ def hal_topik(df_all, d):
         return
     dd = d.copy()
     dd["topik"] = dd["teks_bersih"].map(topik_komentar)
-    # reset_index: explode menduplikasi label index → crosstab gagal tanpa ini.
+    # reset_index: explode menduplikasi label index sehingga crosstab gagal tanpa ini.
     baris = dd.explode("topik").dropna(subset=["topik"]).reset_index(drop=True)
     if not len(baris):
         state_kosong("Tak ada sub-isu terdeteksi.")
@@ -213,7 +232,7 @@ def hal_topik(df_all, d):
     pivot = (pd.crosstab(baris["topik"], baris["sikap"], normalize="index") * 100)
     pivot.index = [TOPIK_LABEL.get(t, t) for t in pivot.index]
     pivot = pivot.loc[[TOPIK_LABEL[t] for t in vol.index if t in TOPIK_LABEL]]
-    st.plotly_chart(G.sikap_per_target_topik(pivot), use_container_width=True,
+    st.plotly_chart(G.sikap_per_target_topik(pivot), width="stretch",
                     config={"displayModeBar": False})
     disclaimer("Satu komentar dapat menyinggung lebih dari satu isu. Sub-isu ditandai "
                "dengan leksikon terkurasi yang dapat diaudit, bukan model kotak-hitam.")
@@ -222,7 +241,7 @@ def hal_topik(df_all, d):
 def hal_coba(df_all, d):
     judul_bagian("Coba model",
                  "Tempel komentar (satu per baris) untuk melihat prediksi sikap, emosi, "
-                 "dan keyakinan model. Model ini dilatih pada data kasus ini — di luar "
+                 "dan keyakinan model. Model ini dilatih pada data kasus ini, di luar "
                  "domain tersebut hasilnya kurang bermakna.")
     contoh = "Allah bersama bapak Nadiem, semangat pak\nInilah fungsi menaikkan gaji hakim 280%\nBukti korupsinya mana sih?"
     teks = st.text_area("Komentar", contoh, height=140)
@@ -268,7 +287,7 @@ individu, dan tidak untuk klaim ilmiah tanpa validasi lanjutan.
     disclaimer(DISCLAIMER_INTI)
 
 
-@st.cache_resource(show_spinner="Memuat model…")
+@st.cache_resource(show_spinner="Memuat model...")
 def muat_mesin():
     from nadiem_sentimen.inference import MesinSentimen
     return MesinSentimen.muat()
