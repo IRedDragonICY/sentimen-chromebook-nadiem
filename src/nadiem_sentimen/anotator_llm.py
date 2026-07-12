@@ -12,6 +12,7 @@ keluaran deterministik, cepat, dan langsung ter-parse.
 from __future__ import annotations
 
 import json
+import re
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
@@ -82,14 +83,23 @@ class Prediksi:
     emosi: str
 
 
+def _cocokkan(nilai: str, sah: set[str]) -> str | None:
+    """Petakan label mendekati ke kelas sah (mis. 'dukacita'/'duk' → 'duka')."""
+    n = nilai.strip().replace(" ", "").lower()
+    if n in sah:
+        return n
+    kandidat = [k for k in sah if k.startswith(n) or n.startswith(k)]
+    return kandidat[0] if len(kandidat) == 1 else None
+
+
 def _valid(obj: dict) -> Prediksi | None:
     try:
-        sikap = str(obj["sikap"]).strip()
-        emosi = str(obj["emosi"]).strip()
+        sikap = _cocokkan(str(obj["sikap"]), SIKAP)
+        emosi = _cocokkan(str(obj["emosi"]), EMOSI)
         spam = bool(obj["spam"])
     except (KeyError, TypeError):
         return None
-    if sikap not in SIKAP or emosi not in EMOSI:
+    if sikap is None or emosi is None:
         return None
     # Konsistensi minimal: spam selalu tak_jelas + netral.
     if spam:
@@ -115,14 +125,33 @@ def labeli_satu(teks: str, model: str, few_shot: bool = False, timeout: int = 12
         "think": False,
         "format": "json",
         "keep_alive": "30m",
-        "options": {"temperature": 0, "num_predict": 80, "num_ctx": 4096},
+        "options": {"temperature": 0, "num_predict": 160, "num_ctx": 4096},
     }).encode()
     req = urllib.request.Request(OLLAMA_URL, body, {"Content-Type": "application/json"})
     try:
         resp = json.load(urllib.request.urlopen(req, timeout=timeout))
-        return _valid(json.loads(resp["message"]["content"]))
-    except (urllib.error.URLError, json.JSONDecodeError, KeyError, TimeoutError):
+        return _valid(_ekstrak_json(resp["message"]["content"]))
+    except (urllib.error.URLError, KeyError, TimeoutError):
         return None
+
+
+def _ekstrak_json(teks: str) -> dict:
+    """Ambil objek JSON pertama dari keluaran model.
+
+    Model coding (mis. ornith) kadang membungkus JSON dalam pagar kode atau
+    prosa meski diminta format=json — ambil objek `{...}` pertama yang valid.
+    """
+    try:
+        return json.loads(teks)
+    except json.JSONDecodeError:
+        pass
+    cocok = re.search(r"\{[^{}]*\}", teks, re.DOTALL)
+    if cocok:
+        try:
+            return json.loads(cocok.group(0))
+        except json.JSONDecodeError:
+            return {}
+    return {}
 
 
 def labeli_banyak(teks: list[str], model: str, few_shot: bool = True,
