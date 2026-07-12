@@ -95,34 +95,41 @@ def _logits_val(model, loader, device):
             {t: torch.cat(v) for t, v in label.items()})
 
 
-def _suhu_optimal(logits, y):
-    """Temperature scaling: cari T yang meminimalkan NLL pada val."""
+def _suhu_optimal(logits, y, lo=0.5, hi=5.0):
+    """Temperature scaling: cari T yang meminimalkan NLL pada val.
+
+    Dibatasi [0.5, 5.0]: di luar rentang ini fit biasanya degenerate (model
+    sangat under/over-confident pada val kecil) dan justru merusak kalibrasi.
+    """
     T = torch.ones(1, requires_grad=True)
     opt = torch.optim.LBFGS([T], lr=0.05, max_iter=60)
 
     def closure():
         opt.zero_grad()
-        loss = F.cross_entropy(logits / T.clamp(min=0.05), y)
+        loss = F.cross_entropy(logits / T.clamp(lo, hi), y)
         loss.backward()
         return loss
 
     opt.step(closure)
-    return float(T.detach().clamp(min=0.05).item())
+    return float(T.detach().clamp(lo, hi).item())
 
 
-def _ambang_abstain(prob, y_idx, target_akurasi=0.85):
-    """Ambang keyakinan minimal agar akurasi bagian terjawab ≥ target."""
+def _ambang_abstain(prob, y_idx, target_akurasi=0.80):
+    """Ambang keyakinan minimal agar akurasi bagian terjawab ≥ target.
+
+    Dibatasi cakupan: ambang tak boleh melebihi median keyakinan, sehingga
+    minimal separuh prediksi tetap dijawab (fitur abstain harus berguna, bukan
+    membungkam segalanya bila target tak tercapai).
+    """
     conf, pred = prob.max(1)
+    cap = float(conf.median().item())
     order = torch.argsort(conf, descending=True)
     benar = (pred == y_idx).float()[order]
     conf_sorted = conf[order]
     kumulatif = torch.cumsum(benar, 0) / torch.arange(1, len(benar) + 1)
     ok = kumulatif >= target_akurasi
-    if ok.any():
-        # ambang = keyakinan terendah yang masih menjaga target (cakupan maksimal)
-        idx = torch.where(ok)[0].max()
-        return float(conf_sorted[idx].item())
-    return float(conf_sorted[0].item())  # tak tercapai → hanya prediksi paling yakin
+    ambang = float(conf_sorted[torch.where(ok)[0].max()].item()) if ok.any() else cap
+    return min(ambang, cap)
 
 
 def main():

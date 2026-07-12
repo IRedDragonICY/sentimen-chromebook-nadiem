@@ -32,7 +32,7 @@ def _bagi_gold(gold: pd.DataFrame) -> pd.DataFrame:
     # Satu keputusan per klaster (ambil sikap wakil pertama), lalu sebar ke anggota.
     per_klaster = gold.groupby("klaster_dup").agg(sikap=("sikap", "first")).reset_index()
     for sikap, grup in per_klaster.groupby("sikap"):
-        klaster = grup["klaster_dup"].to_numpy()
+        klaster = grup["klaster_dup"].to_numpy().copy()
         rng.shuffle(klaster)
         n_test = int(round(len(klaster) * FRAKSI["test"]))
         n_val = int(round(len(klaster) * FRAKSI["val"]))
@@ -47,6 +47,8 @@ def susun(folder: Path) -> dict[str, pd.DataFrame]:
     gold = pd.read_parquet(folder / "gold.parquet")
     gold = _bagi_gold(gold)
     gold["sumber"] = "gold"
+    if "post" not in gold.columns:
+        gold["post"] = gold["id"].str.split("#").str[0]
 
     kolom = ["id", "klaster_dup", "post", "fase", "likes", "teks_bersih",
              "spam", "sikap", "emosi", "sumber"]
