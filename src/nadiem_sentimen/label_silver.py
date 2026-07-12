@@ -39,7 +39,8 @@ def main():
             gagal += 1
             continue
         baris.append({
-            "id": r.id, "klaster_dup": r.klaster_dup, "post": r.post, "fase": r.fase,
+            "id": r.id, "klaster_dup": r.klaster_dup,
+            "post": r.id.split("#")[0], "fase": r.fase,
             "likes": r.likes, "teks_bersih": r.teks_bersih,
             "spam": int(pred.spam), "sikap": pred.sikap, "emosi": pred.emosi,
         })

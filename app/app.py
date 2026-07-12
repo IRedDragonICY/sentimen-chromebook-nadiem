@@ -146,7 +146,8 @@ def hal_topik(df_all, d):
         return
     dd = d.copy()
     dd["topik"] = dd["teks_bersih"].map(topik_komentar)
-    baris = dd.explode("topik").dropna(subset=["topik"])
+    # reset_index: explode menduplikasi label index → crosstab gagal tanpa ini.
+    baris = dd.explode("topik").dropna(subset=["topik"]).reset_index(drop=True)
     if not len(baris):
         state_kosong("Tak ada sub-isu terdeteksi.")
         return
