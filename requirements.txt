@@ -1,6 +1,5 @@
 altair
 emoji
-gradio_client
 joblib
 numpy
 packaging

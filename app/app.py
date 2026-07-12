@@ -8,10 +8,12 @@ Jalankan:  streamlit run app/app.py
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
 import pandas as pd
+import requests
 import streamlit as st
 
 # Streamlit menjalankan berkas ini dengan foldernya di sys.path, jadi modul
@@ -270,8 +272,8 @@ def hal_coba(df_all, d):
     try:
         with st.spinner("Menghubungi model di HuggingFace... "
                         "(bila Space baru bangun dari tidur, tunggu sekitar 30 detik)"):
-            res = _klien_hf().predict(teks, api_name="/analisis")
-        for h in res.get("hasil", []):
+            hasil = _panggil_hf(teks)
+        for h in hasil:
             _kartu_prediksi(h["teks"], h["sikap"], h["emosi"],
                             h["keyakinan"]["sikap"], h["abstain"]["sikap"])
     except Exception:
@@ -313,21 +315,39 @@ individu, dan tidak untuk klaim ilmiah tanpa validasi lanjutan.
     disclaimer(DISCLAIMER_INTI)
 
 
-RUANG_HF = "IRedDragonICY/sentimen-chromebook-api"  # Space inferensi (gradio_client)
+# URL Space inferensi HuggingFace. Dipanggil lewat HTTP API Gradio memakai
+# `requests` saja (tanpa gradio_client) supaya dependensi Streamlit Cloud tetap
+# minim dan bebas konflik. Bisa dioverride via st.secrets['hf_space_url'].
+RUANG_HF = "https://ireddragonicy-sentimen-chromebook-api.hf.space"
 
 
-@st.cache_resource(show_spinner=False)
-def _klien_hf():
-    """Klien ke Space inferensi HuggingFace. Nama Space dan (bila privat) token
-    dapat dioverride lewat st.secrets['hf_space'] / st.secrets['hf_token']."""
-    from gradio_client import Client
-    nama, token = RUANG_HF, None
+def _panggil_hf(teks: str, timeout: int = 120) -> list[dict]:
+    """Panggil endpoint /analisis Space (protokol dua langkah Gradio: POST untuk
+    dapat event_id, lalu GET stream SSE untuk hasil). Kembalikan list prediksi."""
+    base = RUANG_HF
     try:
-        nama = st.secrets.get("hf_space", RUANG_HF)
-        token = st.secrets.get("hf_token")
+        base = st.secrets.get("hf_space_url", RUANG_HF)
     except Exception:
         pass
-    return Client(nama, hf_token=token) if token else Client(nama)
+    base = base.rstrip("/")
+    r = requests.post(f"{base}/gradio_api/call/analisis",
+                      json={"data": [teks]}, timeout=timeout)
+    r.raise_for_status()
+    eid = r.json()["event_id"]
+    with requests.get(f"{base}/gradio_api/call/analisis/{eid}",
+                      stream=True, timeout=timeout) as s:
+        s.raise_for_status()
+        ev = None
+        for raw in s.iter_lines(decode_unicode=True):
+            if not raw:
+                continue
+            if raw.startswith("event:"):
+                ev = raw[6:].strip()
+            elif raw.startswith("data:") and ev == "complete":
+                keluar = json.loads(raw[5:].strip())
+                res = keluar[0] if isinstance(keluar, list) else keluar
+                return res.get("hasil", [])
+    return []
 
 
 @st.cache_resource(show_spinner="Memuat model...")
