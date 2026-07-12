@@ -1,12 +1,12 @@
 altair
 emoji
 joblib
-numpy
+numpy==2.0.2
 packaging
-pandas
+pandas==2.2.3
 pillow
 plotly
-pyarrow
+pyarrow==17.0.0
 pyyaml
 regex
 requests
