@@ -126,6 +126,25 @@ html, body, [class*="css"]{ font-family:var(--font); }
 .stTabs [data-baseweb="tab"]{ font-weight:600; color:var(--ink-2); }
 button[kind="primary"]{ background:var(--brand); border:none; }
 
+/* Input & textarea: paksa teks kontras dengan latar (hindari teks putih di
+   latar terang, mis. text_area pada halaman Coba Model). */
+.stTextInput input, .stTextArea textarea,
+[data-baseweb="input"] input, [data-baseweb="base-input"] input,
+[data-baseweb="textarea"] textarea{
+  color:var(--ink) !important; -webkit-text-fill-color:var(--ink) !important;
+  background:var(--surface) !important; caret-color:var(--ink);
+}
+.stTextInput input::placeholder, .stTextArea textarea::placeholder{
+  color:var(--ink-3) !important; -webkit-text-fill-color:var(--ink-3) !important; opacity:1; }
+
+/* Kredit pembuat di kaki sidebar */
+.sidebar-author{ margin-top:1.4rem; padding-top:1rem; border-top:1px solid var(--border);
+  font-size:.78rem; line-height:1.55; }
+.sidebar-author .sa-name{ font-weight:700; color:var(--ink); }
+.sidebar-author .sa-meta{ color:var(--ink-2); }
+.sidebar-author a{ color:var(--brand-2); text-decoration:none; font-weight:600; }
+.sidebar-author a:hover{ text-decoration:underline; }
+
 /* Sembunyikan tombol Deploy, menu, status, dan footer. Biarkan stToolbar tampil
    agar tombol buka-sidebar (stExpandSidebarButton) tetap ada dan bisa diklik. */
 #MainMenu, footer,

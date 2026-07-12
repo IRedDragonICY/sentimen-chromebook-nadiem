@@ -276,7 +276,7 @@ def hal_coba(df_all, d):
         for h in hasil:
             _kartu_prediksi(h["teks"], h["sikap"], h["emosi"],
                             h["keyakinan"]["sikap"], h["abstain"]["sikap"])
-    except Exception:
+    except Exception as err:
         # Fallback: model lokal (mode pengembangan dengan PyTorch + bobot terpasang).
         try:
             for h in muat_mesin().predict(baris):
@@ -284,8 +284,9 @@ def hal_coba(df_all, d):
                                 h.keyakinan["sikap"], h.abstain["sikap"])
         except (FileNotFoundError, ImportError, OSError):
             st.warning(
-                "Model di HuggingFace sedang tidak dapat dihubungi. Coba lagi "
-                "sebentar, Space mungkin sedang bangun dari tidur. Model tersedia di "
+                f"Inferensi di HuggingFace gagal: {err}\n\n"
+                "Bila ini soal kuota GPU, Space dapat dipindah ke hardware CPU basic "
+                "(gratis, tanpa kuota harian). Model juga tersedia di "
                 "[HuggingFace](https://huggingface.co/IRedDragonICY/indobert-sentimen-chromebook).")
 
 
@@ -343,10 +344,20 @@ def _panggil_hf(teks: str, timeout: int = 120) -> list[dict]:
                 continue
             if raw.startswith("event:"):
                 ev = raw[6:].strip()
-            elif raw.startswith("data:") and ev == "complete":
-                keluar = json.loads(raw[5:].strip())
-                res = keluar[0] if isinstance(keluar, list) else keluar
-                return res.get("hasil", [])
+            elif raw.startswith("data:"):
+                muatan = raw[5:].strip()
+                if ev == "complete":
+                    keluar = json.loads(muatan)
+                    res = keluar[0] if isinstance(keluar, list) else keluar
+                    return res.get("hasil", [])
+                if ev == "error":
+                    # Space mengirim error (mis. kuota ZeroGPU habis). Jangan diam.
+                    pesan = muatan
+                    try:
+                        pesan = json.loads(muatan).get("error", muatan)
+                    except Exception:
+                        pass
+                    raise RuntimeError(pesan)
     return []
 
 
@@ -381,6 +392,14 @@ def main():
         pilihan = st.radio("Halaman", list(HALAMAN), label_visibility="collapsed")
     d = bilah_filter(df_all)
     HALAMAN[pilihan](df_all, d)
+
+    st.sidebar.markdown(
+        '<div class="sidebar-author">'
+        '<div class="sa-name">Mohammad Farid Hendianto</div>'
+        '<div class="sa-meta">2200018401 &middot; Universitas Ahmad Dahlan</div>'
+        '<a href="https://github.com/IRedDragonICY" target="_blank" '
+        'rel="noopener">github.com/IRedDragonICY</a>'
+        '</div>', unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
