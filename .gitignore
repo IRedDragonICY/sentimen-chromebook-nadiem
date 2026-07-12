@@ -4,8 +4,10 @@ __pycache__/
 .ipynb_checkpoints/
 .streamlit/secrets.toml
 
-# Artefak besar yang bisa diregenerasi dari pipeline
+# Artefak besar (model di HuggingFace: IRedDragonICY/indobert-sentimen-chromebook)
 models/*/checkpoint-*/
+models/*/*.bin
+models/*/*.safetensors
 data/processed/*.parquet
 !data/processed/skor.parquet
 

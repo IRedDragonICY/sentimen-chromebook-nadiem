@@ -216,7 +216,13 @@ def hal_tren(df_all, d):
 
 
 def hal_topik(df_all, d):
-    from nadiem_sentimen.topik import TOPIK_LABEL, topik_komentar
+    try:
+        from nadiem_sentimen.topik import TOPIK_LABEL, topik_komentar
+    except ImportError:
+        judul_bagian("Sub-isu & arah sentimen", "")
+        st.info("Fitur ini memerlukan dependensi tambahan (`pip install -e .`). "
+                "Lihat `requirements-dev.txt`.")
+        return
     judul_bagian("Sub-isu & arah sentimen",
                  "Isu apa yang paling ramai, dan bagaimana sikap berbeda antar isu.")
     if not len(d):
@@ -258,8 +264,12 @@ def hal_coba(df_all, d):
                     f' · keyakinan sikap {h.keyakinan["sikap"]:.0%}'
                     + (" · <b>model ragu</b>" if h.abstain["sikap"] else "")
                     + "</div></div>", unsafe_allow_html=True)
-        except FileNotFoundError:
-            st.warning("Model belum tersedia. Latih dulu dengan `python -m nadiem_sentimen.train`.")
+        except (FileNotFoundError, ImportError):
+            st.warning("Fitur ini memerlukan PyTorch dan model IndoBERT. "
+                       "Untuk menjalankan secara lokal, install dependensi lengkap: "
+                       "`pip install -r requirements-dev.txt && pip install -e .`\n\n"
+                       "Model tersedia di: "
+                       "[HuggingFace](https://huggingface.co/IRedDragonICY/indobert-sentimen-chromebook)")
 
 
 def hal_metodologi(df_all, d):
