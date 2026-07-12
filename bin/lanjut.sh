@@ -6,6 +6,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 PY=.venv/bin/python
 MODEL_ANOTATOR="${MODEL_ANOTATOR:-ornith:9b}"
+# Latih & skor di GPU (torch hanya melihat CUDA bila var ini diset).
+export CUDA_VISIBLE_DEVICES=0
 log(){ printf '\n\033[1m[%s] %s\033[0m\n' "$(date +%H:%M:%S)" "$*"; }
 
 log "Menunggu data/labels/silver.parquet …"
@@ -23,8 +25,10 @@ ollama stop "$MODEL_ANOTATOR" 2>/dev/null || true
 sleep 3
 $PY -m nadiem_sentimen.train
 
-log "4/5 Evaluasi jujur semua model pada gold test (+ baseline LLM)"
-$PY -m nadiem_sentimen.evaluate --llm "$MODEL_ANOTATOR"
+log "4/5 Evaluasi jujur (majority, TF-IDF, fine-tune) pada gold test"
+# Baseline LLM dijalankan terpisah setelah pipeline agar GPU tak berebut
+# (ornith + IndoBERT bersamaan melebihi 5,6 GB VRAM).
+$PY -m nadiem_sentimen.evaluate
 
 log "5/6 Skor seluruh 38.845 komentar untuk aplikasi"
 $PY -m nadiem_sentimen.skor_penuh
