@@ -9,6 +9,7 @@ Jalankan:  streamlit run app/app.py
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -263,6 +264,23 @@ def hal_coba(df_all, d):
                  "pada data kasus ini, di luar domain tersebut hasilnya kurang bermakna.")
     contoh = "Allah bersama bapak Nadiem, semangat pak\nInilah fungsi menaikkan gaji hakim 280%\nBukti korupsinya mana sih?"
     teks = st.text_area("Komentar", contoh, height=140)
+
+    # Inferensi memakai GPU gratis (ZeroGPU) HuggingFace yang kuotanya kecil untuk
+    # pemanggil anonim. Dengan token HuggingFace, panggilan terautentikasi dan
+    # kuotanya jauh lebih besar.
+    ada_token = bool(_token_hf())
+    with st.expander("Kuota habis? Masuk dengan token HuggingFace"
+                     + ("  (token aktif)" if ada_token else "")):
+        st.markdown(
+            "Inferensi berjalan di GPU gratis (ZeroGPU) HuggingFace. Kuota untuk "
+            "pengguna anonim sangat kecil dan cepat habis. Tempel **token akses "
+            "HuggingFace** kamu agar panggilan terautentikasi dan mendapat kuota jauh "
+            "lebih besar. Buat token gratis di "
+            "[huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) "
+            "(cukup peran *read*). Token hanya dipakai untuk sesimu di browser ini.")
+        st.text_input("Token HuggingFace", type="password", key="hf_token_user",
+                      placeholder="hf_xxxxxxxxxxxxxxxxxxxx")
+
     if not st.button("Analisis", type="primary"):
         return
     baris = [t for t in teks.splitlines() if t.strip()]
@@ -272,7 +290,7 @@ def hal_coba(df_all, d):
     try:
         with st.spinner("Menghubungi model di HuggingFace... "
                         "(bila Space baru bangun dari tidur, tunggu sekitar 30 detik)"):
-            hasil = _panggil_hf(teks)
+            hasil = _panggil_hf(teks, token=_token_hf())
         for h in hasil:
             _kartu_prediksi(h["teks"], h["sikap"], h["emosi"],
                             h["keyakinan"]["sikap"], h["abstain"]["sikap"])
@@ -283,11 +301,22 @@ def hal_coba(df_all, d):
                 _kartu_prediksi(h.teks, h.sikap, h.emosi,
                                 h.keyakinan["sikap"], h.abstain["sikap"])
         except (FileNotFoundError, ImportError, OSError):
-            st.warning(
-                f"Inferensi di HuggingFace gagal: {err}\n\n"
-                "Bila ini soal kuota GPU, Space dapat dipindah ke hardware CPU basic "
-                "(gratis, tanpa kuota harian). Model juga tersedia di "
-                "[HuggingFace](https://huggingface.co/IRedDragonICY/indobert-sentimen-chromebook).")
+            kuota_habis = any(k in str(err).lower() for k in ("quota", "kuota"))
+            if kuota_habis and not _token_hf():
+                st.warning(
+                    "Kuota GPU gratis HuggingFace untuk pengguna anonim sudah habis. "
+                    "Buka **Kuota habis? Masuk dengan token HuggingFace** di atas, tempel "
+                    "token kamu (gratis), lalu klik Analisis lagi untuk kuota yang jauh "
+                    "lebih besar.")
+            elif kuota_habis:
+                st.warning(
+                    "Kuota GPU HuggingFace untuk token ini juga sudah habis. Coba lagi "
+                    "nanti, gunakan token akun lain, atau buka model langsung di "
+                    "[HuggingFace](https://huggingface.co/IRedDragonICY/indobert-sentimen-chromebook).")
+            else:
+                st.warning(
+                    f"Inferensi di HuggingFace gagal: {err}\n\nModel juga tersedia di "
+                    "[HuggingFace](https://huggingface.co/IRedDragonICY/indobert-sentimen-chromebook).")
 
 
 def hal_metodologi(df_all, d):
@@ -322,21 +351,41 @@ individu, dan tidak untuk klaim ilmiah tanpa validasi lanjutan.
 RUANG_HF = "https://ireddragonicy-sentimen-chromebook-api.hf.space"
 
 
-def _panggil_hf(teks: str, timeout: int = 120) -> list[dict]:
+def _token_hf() -> str | None:
+    """Token HuggingFace untuk memperbesar kuota ZeroGPU. Urutan: token yang
+    ditempel pengguna di sesi ini, lalu st.secrets['hf_token'] (token bersama yang
+    diset pemilik app), lalu variabel lingkungan HF_TOKEN/HUGGINGFACE_TOKEN."""
+    t = st.session_state.get("hf_token_user")
+    if t and t.strip():
+        return t.strip()
+    try:
+        t = st.secrets.get("hf_token")
+        if t:
+            return str(t).strip()
+    except Exception:
+        pass
+    return os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_TOKEN") or None
+
+
+def _panggil_hf(teks: str, token: str | None = None, timeout: int = 120) -> list[dict]:
     """Panggil endpoint /analisis Space (protokol dua langkah Gradio: POST untuk
-    dapat event_id, lalu GET stream SSE untuk hasil). Kembalikan list prediksi."""
+    dapat event_id, lalu GET stream SSE untuk hasil). Kembalikan list prediksi.
+
+    Bila `token` diberikan, panggilan dikirim dengan header Authorization sehingga
+    ZeroGPU menghitungnya sebagai kuota akun tersebut (jauh lebih besar dari anonim)."""
     base = RUANG_HF
     try:
         base = st.secrets.get("hf_space_url", RUANG_HF)
     except Exception:
         pass
     base = base.rstrip("/")
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
     r = requests.post(f"{base}/gradio_api/call/analisis",
-                      json={"data": [teks]}, timeout=timeout)
+                      json={"data": [teks]}, headers=headers, timeout=timeout)
     r.raise_for_status()
     eid = r.json()["event_id"]
     with requests.get(f"{base}/gradio_api/call/analisis/{eid}",
-                      stream=True, timeout=timeout) as s:
+                      headers=headers, stream=True, timeout=timeout) as s:
         s.raise_for_status()
         ev = None
         for raw in s.iter_lines(decode_unicode=True):
