@@ -12,6 +12,14 @@ aplikasi web yang menyajikan temuannya.
 
 ---
 
+## Tautan penting
+
+- **Paper (PDF):** [Paper_Analisis_Sentimen_Chromebook_IndoBERT.pdf](Paper_Analisis_Sentimen_Chromebook_IndoBERT.pdf)
+- **Aplikasi web (Streamlit):** [sentimen-nadiem.streamlit.app](https://sentimen-nadiem.streamlit.app)
+- **Dataset (Kaggle):** [nadiem-chromebook-instagram-comments](https://www.kaggle.com/datasets/ireddragonicy/nadiem-chromebook-instagram-comments)
+- **Model terlatih (Hugging Face):** [indobert-sentimen-chromebook](https://huggingface.co/IRedDragonICY/indobert-sentimen-chromebook)
+- **Space API inferensi (Hugging Face):** [sentimen-chromebook-api](https://huggingface.co/spaces/IRedDragonICY/sentimen-chromebook-api)
+
 ## Apa yang dibangun
 
 - **Pipeline data reproducible** — 11 CSV mentah (dengan timestamp bermasalah &
